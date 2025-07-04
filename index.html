@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bitcoin Barometer</title>
+  <style>
+    :root {
+      --bg: #0D1B2A;
+      --container-bg: #1B263B;
+      --text-color: #E0E7FF;
+      --accent: #F7931A;
+      --accent-hover: #D4AF37;
+      --border: #3A4A6A;
+    }
+    body.light {
+      --bg: #F9FAFB;
+      --container-bg: #FFFFFF;
+      --text-color: #1F2937;
+      --accent: #F7931A;
+      --accent-hover: #D97706;
+      --border: #D1D5DB;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text-color);
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: var(--container-bg);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 40px;
+      background: var(--container-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .progress {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.5s;
+      border-right: 4px solid var(--accent-hover);
+    }
+    .percentage-label {
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%);
+      margin-left: 10px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    .labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-bottom: 15px;
+      color: var(--text-color);
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .data-display {
+      margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 20px;
+      color: #4CAF50;
+    }
+    .input-section {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    select, input {
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--container-bg);
+      color: var(--text-color);
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: var(--bg);
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    button:hover {
+      background: var(--accent-hover);
+    }
+    button:active {
+      transform: scale(0.98);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .chart-section {
+      margin-top: 30px;
+      position: relative;
+      height: 200px;
+    }
+    canvas {
+      width: 100% !important;
+      background: var(--container-bg);
+      border-radius: 8px;
+      height: 100% !important;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 16px;
+      }
+      .input-section {
+        flex-direction: column;
+        gap: 12px;
+      }
+      button, select, input {
+        width: 100%;
+        font-size: 16px;
+        padding: 14px;
+      }
+      .percentage-label {
+        font-size: 14px;
+      }
+      .labels {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .data-display {
+        font-size: 18px;
+      }
+      .theme-toggle {
+        top: 10px;
+        right: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-toggle">
+    <button onclick="toggleTheme()">Toggle Theme</button>
+  </div>
+  <div class="container">
+    <div class="input-section">
+      <input type="number" id="goalInput" step="0.00000001" placeholder="Goal BTC (default 1)" inputmode="decimal" pattern="[0-9]*"/>
+      <button onclick="setGoal()">Set Goal</button>
+    </div>
+    <div class="progress-bar">
+      <div class="progress" id="progress">
+        <div class="percentage-label" id="percentageLabel">0.00%</div>
+      </div>
+    </div>
+    <div class="labels">
+      <span id="labelStart">0 BTC</span>
+      <span id="currentValue">0.00000000 BTC (0.00%)</span>
+      <span id="remainingValue">0.00000000 BTC to go</span>
+      <span id="labelEnd">1 BTC</span>
+    </div>
+    <div class="data-display">
+      <span id="currentBTCValue">$0.00</span>
+    </div>
+    <div>
+      Current Price: <span id="priceDisplay">$0.00</span>
+      <select id="currencySelect" onchange="updateProgress()">
+        <option value="usd">USD</option>
+        <option value="eur">EUR</option>
+        <option value="gbp">GBP</option>
+      </select>
+    </div>
+    <div class="input-section">
+      <input type="number" id="btcAddInput" step="0.00000001" placeholder="Add BTC" inputmode="decimal" pattern="[0-9]*"/>
+      <button onclick="addBTC()">Add</button>
+      <input type="number" id="btcRemoveInput" step="0.00000001" placeholder="Remove BTC" inputmode="decimal" pattern="[0-9]*"/>
+      <button onclick="removeBTC()">Remove</button>
+      <button onclick="resetBTC()">Reset</button>
+    </div>
+    <div class="chart-section">
+      <canvas id="btcChart"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let totalBTC = parseFloat(localStorage.getItem('btcProgress')) || 0;
+    let goalBTC = parseFloat(localStorage.getItem('btcGoal')) || 1;
+    let selectedCurrency = localStorage.getItem('currency') || 'usd';
+    let btcHistory = JSON.parse(localStorage.getItem('btcHistory')) || [0];
+    let updateCount = btcHistory.length;
+    let btcPrice = { usd: 0, eur: 0, gbp: 0 };
+    let myChart;
+
+    async function fetchBTCPrice() {
+      const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur,gbp");
+      const data = await res.json();
+      btcPrice = data.bitcoin;
+      updateProgress();
+    }
+
+    function formatCurrency(value, currency) {
+      const symbols = { usd: "$", eur: "€", gbp: "£" };
+      return symbols[currency] + value.toFixed(2);
+    }
+
+    function updateProgress() {
+      const currency = document.getElementById("currencySelect").value;
+      selectedCurrency = currency;
+      localStorage.setItem("currency", currency);
+
+      const percentage = (totalBTC / goalBTC) * 100;
+      document.getElementById("progress").style.width = `${Math.min(percentage, 100)}%`;
+      document.getElementById("percentageLabel").textContent = percentage.toFixed(2) + "%";
+
+      document.getElementById("currentValue").textContent = `${totalBTC.toFixed(8)} BTC (${percentage.toFixed(2)}%)`;
+      document.getElementById("remainingValue").textContent = `${(goalBTC - totalBTC).toFixed(8)} BTC to go`;
+      document.getElementById("labelEnd").textContent = `${goalBTC} BTC`;
+
+      const currentValueInCurrency = totalBTC * btcPrice[currency];
+      document.getElementById("currentBTCValue").textContent = formatCurrency(currentValueInCurrency, currency);
+      document.getElementById("priceDisplay").textContent = formatCurrency(btcPrice[currency], currency);
+
+      saveProgress();
+      drawChart();
+    }
+
+    function addBTC() {
+      const input = document.getElementById("btcAddInput");
+      const value = parseFloat(input.value) || 0;
+      if (value > 0) {
+        totalBTC = Math.min(totalBTC + value, goalBTC);
+        btcHistory.push(totalBTC);
+        updateCount++;
+        input.value = "";
+        updateProgress();
+      }
+    }
+
+    function removeBTC() {
+      const input = document.getElementById("btcRemoveInput");
+      const value = parseFloat(input.value) || 0;
+      if (value > 0) {
+        totalBTC = Math.max(totalBTC - value, 0);
+        btcHistory.push(totalBTC);
+        updateCount++;
+        input.value = "";
+        updateProgress();
+      }
+    }
+
+    function resetBTC() {
+      totalBTC = 0;
+      btcHistory = [0];
+      updateCount = 1;
+      updateProgress();
+    }
+
+    function setGoal() {
+      const input = document.getElementById("goalInput");
+      const value = parseFloat(input.value);
+      if (value > 0) {
+        goalBTC = value;
+        btcHistory = [0];
+        totalBTC = 0;
+        updateProgress();
+        input.value = "";
+      }
+    }
+
+    function saveProgress() {
+      localStorage.setItem('btcProgress', totalBTC.toString());
+      localStorage.setItem('btcGoal', goalBTC.toString());
+      localStorage.setItem('btcHistory', JSON.stringify(btcHistory));
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("light");
+      localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+    }
+
+    function drawChart() {
+      const ctx = document.getElementById('btcChart').getContext('2d');
+      if (myChart) myChart.destroy();
+      myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: updateCount }, (_, i) => i),
+          datasets: [{
+            label: 'BTC Progress',
+            data: btcHistory,
+            borderColor: '#F7931A',
+            backgroundColor: 'rgba(247, 147, 26, 0.2)',
+            fill: true,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: goalBTC,
+              ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+            },
+            x: {
+              ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
+            }
+          },
+          plugins: {
+            legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } }
+          }
+        }
+      });
+    }
+
+    window.onload = () => {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") document.body.classList.add("light");
+      document.getElementById("currencySelect").value = selectedCurrency;
+      fetchBTCPrice();
+      setInterval(fetchBTCPrice, 60000);
+    };
+  </script>
+</body>
+</html>
