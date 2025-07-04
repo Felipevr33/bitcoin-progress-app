@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bitcoin Barometer</title>
   <style>
     :root {
@@ -13,6 +13,7 @@
       --accent-hover: #D4AF37;
       --border: #3A4A6A;
     }
+
     body.light {
       --bg: #F9FAFB;
       --container-bg: #FFFFFF;
@@ -21,6 +22,7 @@
       --accent-hover: #D97706;
       --border: #D1D5DB;
     }
+
     body {
       background: var(--bg);
       color: var(--text-color);
@@ -32,6 +34,7 @@
       align-items: center;
       min-height: 100vh;
     }
+
     .container {
       width: 100%;
       max-width: 800px;
@@ -41,31 +44,31 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       text-align: center;
     }
+
     .progress-bar {
       width: 100%;
       height: 40px;
       background: var(--container-bg);
       border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       border: 1px solid var(--border);
       position: relative;
     }
+
     .progress {
       height: 100%;
       background: var(--accent);
       transition: width 0.5s;
       border-right: 4px solid var(--accent-hover);
     }
+
     .percentage-label {
-      position: absolute;
-      top: 50%;
-      left: 100%;
-      transform: translateY(-50%);
-      margin-left: 10px;
+      margin-bottom: 15px;
       font-weight: bold;
       color: var(--accent);
     }
+
     .labels {
       display: flex;
       justify-content: space-between;
@@ -73,14 +76,16 @@
       margin-bottom: 15px;
       color: var(--text-color);
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 5px;
     }
+
     .data-display {
       margin-bottom: 20px;
       font-weight: bold;
       font-size: 20px;
       color: #4CAF50;
     }
+
     .input-section {
       display: flex;
       flex-wrap: wrap;
@@ -88,6 +93,7 @@
       gap: 10px;
       margin-bottom: 20px;
     }
+
     select, input {
       padding: 10px;
       font-size: 14px;
@@ -95,7 +101,11 @@
       border-radius: 8px;
       background: var(--container-bg);
       color: var(--text-color);
+      width: 100%;
+      max-width: 200px;
+      box-sizing: border-box;
     }
+
     button {
       padding: 10px 15px;
       font-size: 14px;
@@ -104,85 +114,87 @@
       border-radius: 8px;
       color: var(--bg);
       cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.1s;
+      width: 100%;
+      max-width: 200px;
+      box-sizing: border-box;
     }
+
     button:hover {
       background: var(--accent-hover);
     }
-    button:active {
-      transform: scale(0.98);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-    }
+
     .chart-section {
       margin-top: 30px;
-      position: relative;
-      height: 200px;
     }
+
     canvas {
       width: 100% !important;
       background: var(--container-bg);
       border-radius: 8px;
-      height: 100% !important;
     }
-    .theme-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
+
+    .donation-section {
+      margin-top: 30px;
+      text-align: center;
     }
-    @media (max-width: 600px) {
-      .container {
-        padding: 16px;
-      }
+
+    .donate-button {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--bg);
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .donate-button:hover {
+      background: var(--accent-hover);
+    }
+
+    .donate-button:active {
+      transform: scale(0.97);
+    }
+
+    @media (min-width: 500px) {
       .input-section {
-        flex-direction: column;
-        gap: 12px;
+        flex-wrap: nowrap;
       }
-      button, select, input {
-        width: 100%;
-        font-size: 16px;
-        padding: 14px;
-      }
-      .percentage-label {
-        font-size: 14px;
-      }
-      .labels {
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-      }
-      .data-display {
-        font-size: 18px;
-      }
-      .theme-toggle {
-        top: 10px;
-        right: 10px;
+
+      select, input, button {
+        width: auto;
       }
     }
   </style>
 </head>
 <body>
-  <div class="theme-toggle">
-    <button onclick="toggleTheme()">Toggle Theme</button>
-  </div>
   <div class="container">
     <div class="input-section">
-      <input type="number" id="goalInput" step="0.00000001" placeholder="Goal BTC (default 1)" inputmode="decimal" pattern="[0-9]*"/>
+      <button onclick="toggleTheme()">Toggle Theme</button>
+    </div>
+
+    <div class="input-section">
+      <input type="number" id="goalInput" step="0.00000001" placeholder="Goal BTC (default 1)" />
       <button onclick="setGoal()">Set Goal</button>
     </div>
+
     <div class="progress-bar">
-      <div class="progress" id="progress">
-        <div class="percentage-label" id="percentageLabel">0.00%</div>
-      </div>
+      <div class="progress" id="progress"></div>
     </div>
+    <div class="percentage-label" id="percentageLabel">0.00%</div>
+
     <div class="labels">
       <span id="labelStart">0 BTC</span>
-      <span id="currentValue">0.00000000 BTC (0.00%)</span>
+      <span id="currentValue">0.00000000 BTC</span>
       <span id="remainingValue">0.00000000 BTC to go</span>
       <span id="labelEnd">1 BTC</span>
     </div>
+
     <div class="data-display">
       <span id="currentBTCValue">$0.00</span>
     </div>
+
     <div>
       Current Price: <span id="priceDisplay">$0.00</span>
       <select id="currencySelect" onchange="updateProgress()">
@@ -191,15 +203,22 @@
         <option value="gbp">GBP</option>
       </select>
     </div>
+
     <div class="input-section">
-      <input type="number" id="btcAddInput" step="0.00000001" placeholder="Add BTC" inputmode="decimal" pattern="[0-9]*"/>
+      <input type="number" id="btcAddInput" step="0.00000001" placeholder="Add BTC" />
       <button onclick="addBTC()">Add</button>
-      <input type="number" id="btcRemoveInput" step="0.00000001" placeholder="Remove BTC" inputmode="decimal" pattern="[0-9]*"/>
+      <input type="number" id="btcRemoveInput" step="0.00000001" placeholder="Remove BTC" />
       <button onclick="removeBTC()">Remove</button>
       <button onclick="resetBTC()">Reset</button>
     </div>
+
     <div class="chart-section">
-      <canvas id="btcChart"></canvas>
+      <canvas id="btcChart" height="150"></canvas>
+    </div>
+
+    <div class="donation-section">
+      <p>Steun deze app met een donatie 🙏</p>
+      <a href="bitcoin:3MDA2aqkXFXdy7dtxdJG2sz7x59pGKitVQ" class="donate-button">Doneer Bitcoin</a>
     </div>
   </div>
 
@@ -234,7 +253,7 @@
       document.getElementById("progress").style.width = `${Math.min(percentage, 100)}%`;
       document.getElementById("percentageLabel").textContent = percentage.toFixed(2) + "%";
 
-      document.getElementById("currentValue").textContent = `${totalBTC.toFixed(8)} BTC (${percentage.toFixed(2)}%)`;
+      document.getElementById("currentValue").textContent = `${totalBTC.toFixed(8)} BTC`;
       document.getElementById("remainingValue").textContent = `${(goalBTC - totalBTC).toFixed(8)} BTC to go`;
       document.getElementById("labelEnd").textContent = `${goalBTC} BTC`;
 
@@ -318,7 +337,6 @@
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
           scales: {
             y: {
               min: 0,
