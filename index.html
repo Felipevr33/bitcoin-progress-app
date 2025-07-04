@@ -13,7 +13,6 @@
       --accent-hover: #D4AF37;
       --border: #3A4A6A;
     }
-
     body.light {
       --bg: #F9FAFB;
       --container-bg: #FFFFFF;
@@ -22,7 +21,6 @@
       --accent-hover: #D97706;
       --border: #D1D5DB;
     }
-
     body {
       background: var(--bg);
       color: var(--text-color);
@@ -34,17 +32,41 @@
       align-items: center;
       min-height: 100vh;
     }
-
     .container {
+      position: relative;
       width: 100%;
       max-width: 800px;
       background: var(--container-bg);
       border-radius: 12px;
-      padding: 24px;
+      padding: 24px 24px 24px 60px;
+      box-sizing: border-box;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       text-align: center;
     }
-
+    .logo {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 24px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text-color);
+      padding: 6px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover {
+      background: rgba(0,0,0,0.1);
+    }
     .progress-bar {
       width: 100%;
       height: 40px;
@@ -55,20 +77,17 @@
       border: 1px solid var(--border);
       position: relative;
     }
-
     .progress {
       height: 100%;
       background: var(--accent);
       transition: width 0.5s;
       border-right: 4px solid var(--accent-hover);
     }
-
     .percentage-label {
       margin-bottom: 15px;
       font-weight: bold;
       color: var(--accent);
     }
-
     .labels {
       display: flex;
       justify-content: space-between;
@@ -78,14 +97,17 @@
       flex-wrap: wrap;
       gap: 5px;
     }
-
     .data-display {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-weight: bold;
       font-size: 20px;
       color: #4CAF50;
     }
-
+    .performance {
+      font-size: 14px;
+      color: var(--text-color);
+      margin-bottom: 20px;
+    }
     .input-section {
       display: flex;
       flex-wrap: wrap;
@@ -93,7 +115,6 @@
       gap: 10px;
       margin-bottom: 20px;
     }
-
     select, input {
       padding: 10px;
       font-size: 14px;
@@ -105,7 +126,6 @@
       max-width: 200px;
       box-sizing: border-box;
     }
-
     button {
       padding: 10px 15px;
       font-size: 14px;
@@ -118,50 +138,27 @@
       max-width: 200px;
       box-sizing: border-box;
     }
-
     button:hover {
       background: var(--accent-hover);
     }
-
     .chart-section {
       margin-top: 30px;
     }
-
     canvas {
       width: 100% !important;
       background: var(--container-bg);
       border-radius: 8px;
     }
-
     .donation-section {
       margin-top: 30px;
-      text-align: center;
+      font-size: 14px;
+      color: var(--text-color);
+      word-break: break-all;
     }
-
-    .donate-button {
-      display: inline-block;
-      background: var(--accent);
-      color: var(--bg);
-      text-decoration: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: bold;
-      transition: background 0.2s, transform 0.1s;
-    }
-
-    .donate-button:hover {
-      background: var(--accent-hover);
-    }
-
-    .donate-button:active {
-      transform: scale(0.97);
-    }
-
     @media (min-width: 500px) {
       .input-section {
         flex-wrap: nowrap;
       }
-
       select, input, button {
         width: auto;
       }
@@ -170,31 +167,26 @@
 </head>
 <body>
   <div class="container">
-    <div class="input-section">
-      <button onclick="toggleTheme()">Toggle Theme</button>
-    </div>
-
+    <div class="logo">₿</div>
+    <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()"></button>
     <div class="input-section">
       <input type="number" id="goalInput" step="0.00000001" placeholder="Goal BTC (default 1)" />
       <button onclick="setGoal()">Set Goal</button>
     </div>
-
     <div class="progress-bar">
       <div class="progress" id="progress"></div>
     </div>
     <div class="percentage-label" id="percentageLabel">0.00%</div>
-
     <div class="labels">
       <span id="labelStart">0 BTC</span>
       <span id="currentValue">0.00000000 BTC</span>
       <span id="remainingValue">0.00000000 BTC to go</span>
       <span id="labelEnd">1 BTC</span>
     </div>
-
     <div class="data-display">
       <span id="currentBTCValue">$0.00</span>
     </div>
-
+    <div class="performance" id="performance"></div>
     <div>
       Current Price: <span id="priceDisplay">$0.00</span>
       <select id="currencySelect" onchange="updateProgress()">
@@ -203,7 +195,6 @@
         <option value="gbp">GBP</option>
       </select>
     </div>
-
     <div class="input-section">
       <input type="number" id="btcAddInput" step="0.00000001" placeholder="Add BTC" />
       <button onclick="addBTC()">Add</button>
@@ -211,31 +202,27 @@
       <button onclick="removeBTC()">Remove</button>
       <button onclick="resetBTC()">Reset</button>
     </div>
-
     <div class="chart-section">
       <canvas id="btcChart" height="150"></canvas>
     </div>
-
     <div class="donation-section">
-      <p>Steun deze app met een donatie 🙏</p>
-      <a href="bitcoin:3MDA2aqkXFXdy7dtxdJG2sz7x59pGKitVQ" class="donate-button">Doneer Bitcoin</a>
+      If you appreciate this app, consider supporting its development:<br>
+      <strong>Bitcoin address:</strong><br>
+      3MDA2aqkXFXdy7dtxdJG2sz7x59pGKitVQ
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     let totalBTC = parseFloat(localStorage.getItem('btcProgress')) || 0;
     let goalBTC = parseFloat(localStorage.getItem('btcGoal')) || 1;
     let selectedCurrency = localStorage.getItem('currency') || 'usd';
-    let btcHistory = JSON.parse(localStorage.getItem('btcHistory')) || [0];
-    let updateCount = btcHistory.length;
+    let btcHistory = JSON.parse(localStorage.getItem('btcHistory')) || [];
     let btcPrice = { usd: 0, eur: 0, gbp: 0 };
     let myChart;
 
     async function fetchBTCPrice() {
       const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur,gbp");
-      const data = await res.json();
-      btcPrice = data.bitcoin;
+      btcPrice = (await res.json()).bitcoin;
       updateProgress();
     }
 
@@ -248,19 +235,15 @@
       const currency = document.getElementById("currencySelect").value;
       selectedCurrency = currency;
       localStorage.setItem("currency", currency);
-
       const percentage = (totalBTC / goalBTC) * 100;
       document.getElementById("progress").style.width = `${Math.min(percentage, 100)}%`;
       document.getElementById("percentageLabel").textContent = percentage.toFixed(2) + "%";
-
       document.getElementById("currentValue").textContent = `${totalBTC.toFixed(8)} BTC`;
       document.getElementById("remainingValue").textContent = `${(goalBTC - totalBTC).toFixed(8)} BTC to go`;
       document.getElementById("labelEnd").textContent = `${goalBTC} BTC`;
-
       const currentValueInCurrency = totalBTC * btcPrice[currency];
       document.getElementById("currentBTCValue").textContent = formatCurrency(currentValueInCurrency, currency);
       document.getElementById("priceDisplay").textContent = formatCurrency(btcPrice[currency], currency);
-
       saveProgress();
       drawChart();
     }
@@ -270,8 +253,7 @@
       const value = parseFloat(input.value) || 0;
       if (value > 0) {
         totalBTC = Math.min(totalBTC + value, goalBTC);
-        btcHistory.push(totalBTC);
-        updateCount++;
+        btcHistory.push({ amount: totalBTC, date: new Date().toISOString() });
         input.value = "";
         updateProgress();
       }
@@ -282,8 +264,7 @@
       const value = parseFloat(input.value) || 0;
       if (value > 0) {
         totalBTC = Math.max(totalBTC - value, 0);
-        btcHistory.push(totalBTC);
-        updateCount++;
+        btcHistory.push({ amount: totalBTC, date: new Date().toISOString() });
         input.value = "";
         updateProgress();
       }
@@ -291,8 +272,7 @@
 
     function resetBTC() {
       totalBTC = 0;
-      btcHistory = [0];
-      updateCount = 1;
+      btcHistory = [];
       updateProgress();
     }
 
@@ -301,7 +281,7 @@
       const value = parseFloat(input.value);
       if (value > 0) {
         goalBTC = value;
-        btcHistory = [0];
+        btcHistory = [];
         totalBTC = 0;
         updateProgress();
         input.value = "";
@@ -317,6 +297,11 @@
     function toggleTheme() {
       document.body.classList.toggle("light");
       localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      document.getElementById("themeToggle").textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
     }
 
     function drawChart() {
@@ -325,10 +310,10 @@
       myChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: Array.from({ length: updateCount }, (_, i) => i),
+          labels: btcHistory.map(entry => entry.date ? new Date(entry.date).toLocaleDateString() : ""),
           datasets: [{
-            label: 'BTC Progress',
-            data: btcHistory,
+            label: 'BTC Holdings',
+            data: btcHistory.map(entry => entry.amount),
             borderColor: '#F7931A',
             backgroundColor: 'rgba(247, 147, 26, 0.2)',
             fill: true,
@@ -339,13 +324,11 @@
           responsive: true,
           scales: {
             y: {
-              min: 0,
-              max: goalBTC,
+              suggestedMin: 0,
+              suggestedMax: goalBTC * 1.1,
               ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
             },
-            x: {
-              ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
-            }
+            x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } }
           },
           plugins: {
             legend: { labels: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } }
@@ -357,9 +340,10 @@
     window.onload = () => {
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "light") document.body.classList.add("light");
+      updateThemeIcon();
       document.getElementById("currencySelect").value = selectedCurrency;
       fetchBTCPrice();
-      setInterval(fetchBTCPrice, 60000);
+      setInterval(fetchBTCPrice, 10000);
     };
   </script>
 </body>
